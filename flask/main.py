@@ -1,5 +1,5 @@
 import json
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, fields, marshal_with
 from flask_restful import Api, Resource, reqparse
 from flask import Flask, jsonify
 from base import Books, db, Readers, set_db_cnn
@@ -30,7 +30,15 @@ parser.add_argument("author", type=str)
 parser.add_argument("name_book", type=str)
 parser.add_argument("book_reader_id", type=int)
 
-#маршмелоу
+# fields = {
+#     "date": fields.String,
+#     "id": fields.Integer,
+#     "name": fields.String,
+#     "patronymic": fields.String,
+#     "phone": fields.Integer,
+#     "subname": fields.String,
+# }
+
 class PostSchema(ma.Schema):
     class Meta:
         fields = ("subname", "name", "patronymic" , "phone")
