@@ -76,6 +76,21 @@ class Main(Resource):
         db.session.add(add_cell_Readers)
         db.session.commit()
         return jsonify(add_cell_Readers.as_dict())
+    
+    
+    def put(self, reader_id):
+        args = parser.parse_args()
+        reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
+        if args['subname']:
+            reader_cell.subname = args['subname']
+        if args['name']:
+            reader_cell.name = args['name']
+        if args['patronymic']:
+            reader_cell.patronymic = args['patronymic']
+        if args['phone']:
+            reader_cell.phone = args['phone']
+        db.session.commit()
+        return jsonify(reader_cell.as_dict())
 
     def delete(self, reader_id):
         reader_dell = db.session.query(Readers).get(reader_id)
