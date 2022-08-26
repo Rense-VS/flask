@@ -43,7 +43,7 @@ parser.add_argument("book_reader_id", type=str)
 #маршмелоу
 class PostSchema(ma.Schema):
     class Meta:
-        fields = ("subname", "name", "patronymic" , "phone")
+        fields = ("subname", "name", "patronymic" , "phone", "author", "name_book", "book_reader_id")
 
 post_schema = PostSchema()
 posts_schema = PostSchema(many=True)
