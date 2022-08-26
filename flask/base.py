@@ -1,5 +1,6 @@
 import json
 from flask import Flask
+from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import orm
@@ -34,6 +35,7 @@ class Readers(base):
     patronymic = sa.Column(sa.String(50), nullable=True)
     phone = sa.Column(sa.Integer())
     date = sa.Column(sa.DateTime, default=datetime.utcnow)
+    subname_book = relationship('Books', backref='readers', uselist=False)
 
     def __init__(self, subname, name, patronymic, phone):
         self.subname = subname
