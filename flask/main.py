@@ -28,7 +28,8 @@ parser.add_argument("patronymic", type=str)
 parser.add_argument("phone", type=int)
 parser.add_argument("author", type=str)
 parser.add_argument("name_book", type=str)
-parser.add_argument("book_reader_id", type=int)
+parser.add_argument("book_reader_id", type=str)
+
 
 # fields = {
 #     "date": fields.String,
@@ -39,6 +40,7 @@ parser.add_argument("book_reader_id", type=int)
 #     "subname": fields.String,
 # }
 
+#маршмелоу
 class PostSchema(ma.Schema):
     class Meta:
         fields = ("subname", "name", "patronymic" , "phone")
@@ -64,28 +66,30 @@ class Main(Resource):
             reader_cell2 = db.session.query(Readers).all()
             result = posts_schema.dump(reader_cell2)
             return jsonify(result)
-        else:   
-            reader_cell = db.session.query(Readers).get(reader_id)
+        else:
+            reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
             return jsonify(reader_cell.as_dict())
         
-
     def post(self, reader_id):
+
         args = parser.parse_args()
-        u = Books(author = args['author'], name_book = args['name_book'], book_reader_id = args['book_reader_id'])
-        db.session.add(u)
-        db.session.flush()
 
         add_cell_Readers = Readers(
             subname = args['subname'],
             name = args['name'], 
             patronymic = args['patronymic'], 
-            phone = args['phone']
+            phone = args['phone'],
+            
         )
+        
         db.session.add(add_cell_Readers)
+        db.session.flush()
+
+        u = Books(author = args['author'], name_book = args['name_book'], book_reader_id = add_cell_Readers.id)
+        db.session.add(u)
         db.session.commit()
         return jsonify(add_cell_Readers.as_dict())
-    
-    
+
     def put(self, reader_id):
         args = parser.parse_args()
         reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
