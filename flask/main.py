@@ -64,6 +64,9 @@ class Main(Resource):
     def get(self, reader_id):
         if reader_id == 0:
             #reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
+            #for i in reader_cell2:
+                #result = posts_schema.dump(i)
+                #return jsonify(result)
             reader_cell2 = db.session.query(Readers).all()
             result = posts_schema.dump(reader_cell2)
             return jsonify(result)
