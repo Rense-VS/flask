@@ -62,14 +62,15 @@ posts_schema = PostSchema(many=True)
 
 class Main(Resource):
     def get(self, reader_id):
-        if reader_id == 0:
-            #reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
-            #for i in reader_cell2:
-                #result = posts_schema.dump(i)
-                #return jsonify(result)
-            reader_cell2 = db.session.query(Readers).all()
-            result = posts_schema.dump(reader_cell2)
-            return jsonify(result)
+        if reader_id == 1:
+            reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
+            d = []
+            for i in reader_cell2:
+                list = posts_schema.dump(i)
+                d.append(list)
+                print(list)
+            return d 
+        
         else:
             reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
             return jsonify(reader_cell.as_dict())
