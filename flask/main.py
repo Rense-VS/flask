@@ -72,8 +72,13 @@ class Main(Resource):
             return d 
         
         else:
-            reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
-            return jsonify(reader_cell.as_dict())
+            reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
+            d = []
+            for i in reader_cell2:
+                list = posts_schema.dump(i)
+                print(reader_id)
+                d.append(list)
+            return d[reader_id]
         
     def post(self, reader_id):
 
