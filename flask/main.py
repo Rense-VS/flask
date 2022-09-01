@@ -62,7 +62,7 @@ posts_schema = PostSchema(many=True)
 
 class Main(Resource):
     def get(self, reader_id):
-        if reader_id == 1:
+        if reader_id == 0:
             reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
             d = []
             for i in reader_cell2:
