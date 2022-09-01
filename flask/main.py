@@ -118,7 +118,10 @@ class Main(Resource):
         reader_dell = db.session.query(Readers).get(reader_id)
         db.session.delete(reader_dell)
         db.session.commit()
-        return jsonify(reader_dell.as_dict())
+        reader_dell2 = db.session.query(Books).get(reader_id)
+        db.session.delete(reader_dell2)
+        db.session.commit()
+        return jsonify("Читатель успешно удален")
 
 
 api.add_resource(Main, "/book/reader/<int:reader_id>")
