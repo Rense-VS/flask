@@ -1,70 +1,30 @@
-import json
 from flask import Flask
-from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from sqlalchemy import orm
-from sqlalchemy.ext.declarative import declarative_base
-import sqlalchemy as sa
+app = Flask(__name__)
 
-with open("config.json") as json_file:
-    data = json.load(json_file)
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///base.db"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-base = declarative_base()
-engine = sa.create_engine(data["SQLALCHEMY_DATABASE_URI"])
-base.metadata.bind = engine
-session = orm.scoped_session(orm.sessionmaker())(bind=engine)
+class Read(db.Model):
+    __tablename__ = 'readers'
 
-
-def set_db_cnn(app):
-    db = SQLAlchemy(app)
-    # db.create_all()
-
-    return db
+    id = db.Column(db.Integer, primary_key=True)
+    subname = db.Column(db.String(50), nullable=True)
+    name = db.Column(db.String(50), nullable=True)
+    patronymic = db.Column(db.String(50), nullable=True)
+    phone = db.Column(db.Integer())
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    books_dates = db.relationship('Book', backref='reader', lazy='dynamic')
 
 
-db = base
+class Book(db.Model):
+    __tablename__ = 'books'
 
+    id = db.Column(db.Integer, primary_key=True)
+    tour_package_id = db.Column(db.Integer, db.ForeignKey('readers.id'))
+    author = db.Column(db.String(50))
+    name_book = db.Column(db.String(100))
 
-class Readers(base):
-    __tablename__ = "readers"
-
-    id = sa.Column(sa.Integer, primary_key=True)
-    subname = sa.Column(sa.String(50), nullable=True)
-    name = sa.Column(sa.String(50), nullable=True)
-    patronymic = sa.Column(sa.String(50), nullable=True)
-    phone = sa.Column(sa.Integer())
-    date = sa.Column(sa.DateTime, default=datetime.utcnow)
-    subname_book = relationship('Books', backref='readers', uselist=False)
-
-    def __init__(self, subname, name, patronymic, phone):
-        self.subname = subname
-        self.name = name
-        self.patronymic = patronymic
-        self.phone = phone
-
-    def __repr__(self):
-        return f"<readers {self.id}>"
-    
-    def as_dict(self):
-       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-
-class Books(base):
-    __tablename__ = "books"
-
-    id = sa.Column(sa.Integer, primary_key=True)
-    author = sa.Column(sa.String(50), nullable=True)
-    name_book = sa.Column(sa.String(100))
-    book_reader_id = sa.Column(sa.Integer, sa.ForeignKey("readers.id"))
-
-    def __init__(self, author, name_book, book_reader_id):
-        self.author = author
-        self.name_book = name_book
-        self.book_reader_id = book_reader_id
-
-    def __repr__(self):
-        return f"<books {self.id}>"
-
-
-base.metadata.create_all()
+db.create_all()
