@@ -1,25 +1,24 @@
-import json
-from flask_restful import Resource, reqparse, fields, marshal_with
+from flask_restful import Resource, reqparse
 from flask_restful import Api, Resource, reqparse
+from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify
-from base import Books, db, Readers, set_db_cnn
 from flask_marshmallow import Marshmallow
-
-
-
+from flask import Flask
+from base import Read, Book
+from flask import Flask
+from webargs import fields
+from flask_apispec import marshal_with
+from marshmallow import Schema
 
 app = Flask(__name__)
+db = SQLAlchemy(app)
 ma = Marshmallow(app)
-with open("config.json") as json_file:
-    data = json.load(json_file)
 
 app.config["SECRET_KEY"] = "SPGKRPOKGBOGKTOKBOHK"
-app.config["SQLALCHEMY_DATABASE_URI"] = data["SQLALCHEMY_DATABASE_URI"]
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///base.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-
 api = Api()
-db = set_db_cnn(app)
 
 parser = reqparse.RequestParser()
 parser.add_argument("subname", type=str)
@@ -28,105 +27,64 @@ parser.add_argument("patronymic", type=str)
 parser.add_argument("phone", type=int)
 parser.add_argument("author", type=str)
 parser.add_argument("name_book", type=str)
-parser.add_argument("book_reader_id", type=str)
+parser.add_argument("tour_package_id", type=str)
 
 
-# fields = {
-#     "date": fields.String,
-#     "id": fields.Integer,
-#     "name": fields.String,
-#     "patronymic": fields.String,
-#     "phone": fields.Integer,
-#     "subname": fields.String,
+# {
+#     "subname": "Иванов",
+#     "name": "Иван",
+#     "patronymic": "Иванович",
+#     "phone": 89000000,
+#     "author": "Иван",
+#     "name_book": "Ваня",
+#     "tour_package_id": 1
 # }
 
-#маршмелоу
-class PostSchema(ma.Schema):
+
+class BoksSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ("subname", "name", "patronymic" , "phone", "author", "name_book", "book_reader_id")
+        model = Book
 
-post_schema = PostSchema()
-posts_schema = PostSchema(many=True)
+class ReadSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Read
 
-# Пример запроса
-#  {
-#         "subname": "Чехов",
-#         "name": "Иван",
-#         "patronymic": "Петров",
-#         "phone": 898887777,
-#         "book": "Тихий Дон",
-#         "author": "-----",
-#         "name_book": "Тихий Дон",
-#         "book_reader_id": 2,
-#     },
+    books_dates = ma.Nested(BoksSchema, many=True)
 
 class Main(Resource):
+    @marshal_with(ReadSchema(many=True))
     def get(self, reader_id):
         if reader_id == 0:
-            reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
-            d = []
-            for i in reader_cell2:
-                list = posts_schema.dump(i)
-                d.append(list)
-                print(list)
-            return d 
-        
+            return Read.query.all()
         else:
-            reader_cell2 = db.session.query(Readers, Books).join(Books, Readers.id == Books.book_reader_id).all()
-            d = []
-            for i in reader_cell2:
-                list = posts_schema.dump(i)
-                print(reader_id)
-                d.append(list)
-            return d[reader_id]
-        
+            return db.session.query(Read).join(Book, Read.id == Book.tour_package_id).all()
+
     def post(self, reader_id):
 
         args = parser.parse_args()
 
-        add_cell_Readers = Readers(
+        add_cell_Readers = Read(
             subname = args['subname'],
             name = args['name'], 
             patronymic = args['patronymic'], 
-            phone = args['phone'],
-            
-        )
-        
+            phone = args['phone'])
+
         db.session.add(add_cell_Readers)
-        db.session.flush()
-
-        u = Books(author = args['author'], name_book = args['name_book'], book_reader_id = add_cell_Readers.id)
-        db.session.add(u)
         db.session.commit()
-        return jsonify(add_cell_Readers.as_dict())
-
-    def put(self, reader_id):
-        args = parser.parse_args()
-        reader_cell = db.session.query(Readers).filter_by(id=reader_id).first()
-        if args['subname']:
-            reader_cell.subname = args['subname']
-        if args['name']:
-            reader_cell.name = args['name']
-        if args['patronymic']:
-            reader_cell.patronymic = args['patronymic']
-        if args['phone']:
-            reader_cell.phone = args['phone']
+        u = Book(author = args['author'], name_book = args['name_book'], tour_package_id = args['tour_package_id'])
+        db.session.add( u)
         db.session.commit()
-        return jsonify(reader_cell.as_dict())
+
+        return "Пользователь успешно добавлен"
 
     def delete(self, reader_id):
-        reader_dell = db.session.query(Readers).get(reader_id)
+        reader_dell = db.session.query(Read).filter_by(id = reader_id).first()
         db.session.delete(reader_dell)
         db.session.commit()
-        reader_dell2 = db.session.query(Books).get(reader_id)
-        db.session.delete(reader_dell2)
-        db.session.commit()
-        return jsonify("Читатель успешно удален")
-
+        return "Успешно удален"
 
 api.add_resource(Main, "/book/reader/<int:reader_id>")
 api.init_app(app)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
