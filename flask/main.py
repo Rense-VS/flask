@@ -14,7 +14,7 @@ app = Flask(__name__)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-app.config["SECRET_KEY"] = "SPGKRPOKGBOGKTOKBOHK"
+app.config["SECRET_KEY"] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///base.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
