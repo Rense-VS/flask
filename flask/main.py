@@ -14,10 +14,6 @@ app = Flask(__name__)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-app.config["SECRET_KEY"] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///base.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
 api = Api()
 
 parser = reqparse.RequestParser()
@@ -75,7 +71,7 @@ class Main(Resource):
         db.session.add( u)
         db.session.commit()
 
-        return "Пользователь успешно добавлен"
+        return "Читатель успешно добавлен"
 
     def delete(self, reader_id):
         reader_dell = db.session.query(Read).filter_by(id = reader_id).first()
