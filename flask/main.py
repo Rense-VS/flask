@@ -9,12 +9,21 @@ from flask import Flask
 from webargs import fields
 from flask_apispec import marshal_with
 from marshmallow import Schema
+from flask_migrate import Migrate
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+migrate = Migrate(app, db)
 
 api = Api()
+
+app.config['SQLALCHEMY_DATABASE_URI'] =  os.getenv('DATABASE_URI')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 parser = reqparse.RequestParser()
 parser.add_argument("subname", type=str)
@@ -58,25 +67,26 @@ class Main(Resource):
     def post(self, reader_id):
 
         args = parser.parse_args()
+        if reader_id == 0:
+            add_cell_Readers = Read(
+                subname = args['subname'],
+                name = args['name'], 
+                patronymic = args['patronymic'], 
+                phone = args['phone'])
 
-        add_cell_Readers = Read(
-            subname = args['subname'],
-            name = args['name'], 
-            patronymic = args['patronymic'], 
-            phone = args['phone'])
-
-        db.session.add(add_cell_Readers)
-        db.session.commit()
-        u = Book(author = args['author'], name_book = args['name_book'], tour_package_id = args['tour_package_id'])
-        db.session.add( u)
-        db.session.commit()
+            db.session.add(add_cell_Readers)
+            db.session.commit()
+        else:
+            u = Book(author = args['author'], name_book = args['name_book'], tour_package_id = args['tour_package_id'])
+            db.session.add( u)
+            db.session.commit()
 
         return "Читатель успешно добавлен"
 
     def delete(self, reader_id):
-        reader_dell = db.session.query(Read).filter_by(id = reader_id).first()
-        db.session.delete(reader_dell)
-        db.session.commit()
+        for it in db.session.query(Read).join(Book, Read.id == Book.tour_package_id).all():
+            db.session.delete(it)
+            db.session.commit()
         return "Успешно удален"
 
 api.add_resource(Main, "/book/reader/<int:reader_id>")
