@@ -39,6 +39,6 @@ class Book(db.Model):
     name_book = db.Column(db.String(100))
 
     def __repr__(self):
-        return f'Читатель [ID: {self.id}, Автор: {self.author}, Название книги: {self.name_book}]'
+        return f'Книга [ID: {self.id}, Автор: {self.author}, Название книги: {self.name_book}]'
 
 db.create_all()
